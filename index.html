@@ -66,10 +66,45 @@
         </a-plane>
       </a-entity>
       Optional recipe information -->
-      
-      <!-- Second dish target - add more for each recipe -->
+     
       <a-entity mindar-image-target="targetIndex: 1">
-        <!-- Another 3D model with different animation -->
+        Video plane 
+        <a-plane
+          position="0 0 0"
+          height="1"
+          width="1.5"
+          rotation="0 0 0">
+          <a-video
+            src="./videos/recipe1.webm"
+            width="1.5"
+            height="1"
+            position="0 0 0.01"
+            autoplay="false"
+            loop="true">
+          </a-video>
+        </a-plane>
+        
+         Optional play button 
+        <a-plane
+          position="0 -0.6 0"
+          height="0.15"
+          width="0.3"
+          color="#0078FF"
+          class="play-button">
+          <a-text
+            value="PLAY"
+            position="0 0 0.01"
+            align="center"
+            color="white"
+            scale="0.3 0.3 0.3">
+          </a-text>
+        </a-plane>
+      </a-entity>
+      
+      <!--
+       Second dish target - add more for each recipe 
+      <a-entity mindar-image-target="targetIndex: 1">
+        Another 3D model with different animation 
         <a-entity
           position="0 0 0"
           rotation="0 0 0"
@@ -79,11 +114,11 @@
         </a-entity>
       </a-entity>
       
-      <!-- Add more targets as needed -->
+      <!-- Add more targets as needed 
       
-      <!-- Second dish target - add more for each recipe -->
+      <!-- Second dish target - add more for each recipe 
       <a-entity mindar-image-target="targetIndex: 2">
-        <!-- Another 3D model with different animation -->
+        <!-- Another 3D model with different animation 
         <a-entity
           position="0 0 0"
           rotation="0 0 0"
@@ -93,9 +128,9 @@
         </a-entity>
       </a-entity>
       
-      <!-- Second dish target - add more for each recipe -->
+  Second dish target - add more for each recipe 
       <a-entity mindar-image-target="targetIndex: 3">
-        <!-- Another 3D model with different animation -->
+   Another 3D model with different animation 
         <a-entity
           position="0 0 0"
           rotation="0 0 0"
@@ -105,9 +140,9 @@
         </a-entity>
       </a-entity>
       
-      <!-- Second dish target - add more for each recipe -->
+     Second dish target - add more for each recipe 
       <a-entity mindar-image-target="targetIndex: 10">
-        <!-- Another 3D model with different animation -->
+        Another 3D model with different animation 
         <a-entity
           position="0 0 0"
           rotation="0 0 0"
@@ -119,7 +154,7 @@
       
     </a-scene>
   </div>
-  
+-->
   <script>
     // Optional JavaScript for additional interactivity
     document.addEventListener("DOMContentLoaded", function() {
