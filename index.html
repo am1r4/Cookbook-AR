@@ -68,23 +68,180 @@
       Optional recipe information -->
      
       <a-entity mindar-image-target="targetIndex: 1">
-        Video plane 
+        <!-- Video plane -->
         <a-plane
           position="0 0 0"
           height="1"
           width="1.5"
-          rotation="0 0 0">
+          rotation="0 0 0"
+          transparent="true"
+          alpha-test="0.5">
           <a-video
-            src="./videos/recipe1.webm"
             width="1.5"
             height="1"
             position="0 0 0.01"
-            autoplay="false"
+            autoplay="true"
             loop="true">
+            <video id="recipe1" preload="auto" crossorigin="anonymous" playsinline>
+              <source src="./videos/recipe1.webm" type="video/webm">
+              <source src="./videos/recipe1.mp4" type="video/mp4">
+            </video>
           </a-video>
         </a-plane>
       </a-entity>
+      <script>
+        AFRAME.registerShader('chromakey', {
+          schema: {
+            src: {type: 'map'},
+            color: {type: 'color', default: '#00FF00'},
+            threshold: {type: 'number', default: 0.5}
+          },
+          
+          init: function (data) {
+            this.uniforms = {
+              src: {type: 't', value: null},
+              color: {type: 'c', value: new THREE.Color(data.color)},
+              threshold: {type: 'f', value: data.threshold}
+            };
+            
+            this.material = new THREE.ShaderMaterial({
+              uniforms: this.uniforms,
+              vertexShader: `
+                varying vec2 vUv;
+                void main(void) {
+                  vUv = uv;
+                  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+              `,
+              fragmentShader: `
+                uniform sampler2D src;
+                uniform vec3 color;
+                uniform float threshold;
+                varying vec2 vUv;
+                
+                void main(void) {
+                  vec4 texColor = texture2D(src, vUv);
+                  float distance = length(texColor.rgb - color);
+                  
+                  if (distance < threshold) {
+                    gl_FragColor = vec4(texColor.rgb, 0.0);
+                  } else {
+                    gl_FragColor = texColor;
+                  }
+                }
+              `,
+              transparent: true
+            });
+          },
+          
+          update: function (data) {
+            this.uniforms.color.value.set(data.color);
+            this.uniforms.threshold.value = data.threshold;
+            
+            if (data.src && data.src.value) {
+              this.uniforms.src.value = data.src.value;
+            }
+          }
+        });
+      </script>
       
+      <a-entity mindar-image-target="targetIndex: 1">
+        <a-plane
+          position="0 0 0"
+          height="1"
+          width="1.5"
+          rotation="0 0 0"
+          material="shader: chromakey; src: #recipe1; color: #00FF00; threshold: 0.5">
+        </a-plane>
+      </a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 10">
+        <!-- Video plane -->
+        <a-plane
+          position="0 0 0"
+          height="1"
+          width="1.5"
+          rotation="0 0 0"
+          transparent="true"
+          alpha-test="0.5">
+          <a-video
+            width="1.5"
+            height="1"
+            position="0 0 0.01"
+            autoplay="true"
+            loop="true">
+            <video id="recipe1" preload="auto" crossorigin="anonymous" playsinline>
+              <source src="./videos/recipe1.webm" type="video/webm">
+              <source src="./videos/recipe1.mp4" type="video/mp4">
+            </video>
+          </a-video>
+        </a-plane>
+      </a-entity>
+      <script>
+        AFRAME.registerShader('chromakey', {
+          schema: {
+            src: {type: 'map'},
+            color: {type: 'color', default: '#00FF00'},
+            threshold: {type: 'number', default: 0.5}
+          },
+          
+          init: function (data) {
+            this.uniforms = {
+              src: {type: 't', value: null},
+              color: {type: 'c', value: new THREE.Color(data.color)},
+              threshold: {type: 'f', value: data.threshold}
+            };
+            
+            this.material = new THREE.ShaderMaterial({
+              uniforms: this.uniforms,
+              vertexShader: `
+                varying vec2 vUv;
+                void main(void) {
+                  vUv = uv;
+                  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+              `,
+              fragmentShader: `
+                uniform sampler2D src;
+                uniform vec3 color;
+                uniform float threshold;
+                varying vec2 vUv;
+                
+                void main(void) {
+                  vec4 texColor = texture2D(src, vUv);
+                  float distance = length(texColor.rgb - color);
+                  
+                  if (distance < threshold) {
+                    gl_FragColor = vec4(texColor.rgb, 0.0);
+                  } else {
+                    gl_FragColor = texColor;
+                  }
+                }
+              `,
+              transparent: true
+            });
+          },
+          
+          update: function (data) {
+            this.uniforms.color.value.set(data.color);
+            this.uniforms.threshold.value = data.threshold;
+            
+            if (data.src && data.src.value) {
+              this.uniforms.src.value = data.src.value;
+            }
+          }
+        });
+      </script>
+      
+      <a-entity mindar-image-target="targetIndex: 10">
+        <a-plane
+          position="0 0 0"
+          height="1"
+          width="1.5"
+          rotation="0 0 0"
+          material="shader: chromakey; src: #recipe1; color: #00FF00; threshold: 0.5">
+        </a-plane>
+      </a-entity>
       <!--
        Second dish target - add more for each recipe 
       <a-entity mindar-image-target="targetIndex: 1">
