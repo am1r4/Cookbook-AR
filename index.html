@@ -54,6 +54,19 @@
       font-family: Arial, sans-serif;
       z-index: 5;
     }
+    #playButton {
+      position: fixed;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      z-index: 20;
+      font-size: 16px;
+    }
   </style>
 </head>
 <body>
@@ -65,6 +78,9 @@
   
   <!-- Instructions -->
   <div class="instructions">Point camera at recipe image in cookbook</div>
+  
+  <!-- Play button -->
+  <button id="playButton">Enable Videos</button>
   
   <!-- AR container -->
   <div class="example-container">
@@ -88,9 +104,12 @@
           playsinline 
           webkit-playsinline 
           crossorigin="anonymous"
+          preload="auto"
           loop>
-          <source src="./videos/recipe1.webm" type="video/webm">
+          <!-- iOS prefers MP4 -->
           <source src="./videos/recipe1.mp4" type="video/mp4">
+          <source src="./videos/recipe1.webm" type="video/webm">
+          <source src="./videos/recipe1.mov" type="video/quicktime">
         </video>
         
         <video 
@@ -99,9 +118,11 @@
           playsinline 
           webkit-playsinline 
           crossorigin="anonymous"
+          preload="auto"
           loop>
-          <source src="./videos/recipe2.webm" type="video/webm">
           <source src="./videos/recipe2.mp4" type="video/mp4">
+          <source src="./videos/recipe2.webm" type="video/webm">
+          <source src="./videos/recipe2.mov" type="video/quicktime">
         </video>
       </a-assets>
       
@@ -110,17 +131,19 @@
       
       <!-- Target #0 -->
       <a-entity mindar-image-target="targetIndex: 0">
-        <!-- Video plane for recipe 1 -->
+        <!-- Video plane for recipe 1 - Using chromakey shader for green screen -->
         <a-plane
           position="0 0 0"
           height="0.8"
           width="1.2"
           rotation="0 0 0">
           <a-video
+            id="video-plane-1"
             src="#recipe1-video"
             width="1.2"
             height="0.8"
-            position="0 0 0.01">
+            position="0 0 0.01"
+            material="shader: chromakey; src: #recipe1-video; color: #00FF00; threshold: 0.4">
           </a-video>
         </a-plane>
         
@@ -145,17 +168,19 @@
       
       <!-- Target #1 -->
       <a-entity mindar-image-target="targetIndex: 1">
-        <!-- Video plane for recipe 2 -->
+        <!-- Video plane for recipe 2 - Using chromakey shader for green screen -->
         <a-plane
           position="0 0 0"
           height="0.8"
           width="1.2"
           rotation="0 0 0">
           <a-video
+            id="video-plane-2"
             src="#recipe2-video"
             width="1.2"
             height="0.8"
-            position="0 0 0.01">
+            position="0 0 0.01"
+            material="shader: chromakey; src: #recipe2-video; color: #00FF00; threshold: 0.4">
           </a-video>
         </a-plane>
         
@@ -177,9 +202,6 @@
           </a-text>
         </a-plane>
       </a-entity>
-      
-      <!-- Add more targets as needed -->
-      
     </a-scene>
   </div>
   
@@ -189,58 +211,20 @@
       const loadingEl = document.getElementById('loading');
       const debugEl = document.getElementById('debug');
       const instructionsEl = document.querySelector('.instructions');
+      const playButtonEl = document.getElementById('playButton');
       
       // Video elements
       const recipe1VideoEl = document.getElementById('recipe1-video');
       const recipe2VideoEl = document.getElementById('recipe2-video');
       
-      // Hide loading screen when scene is loaded
-      sceneEl.addEventListener('loaded', function() {
-        loadingEl.style.display = 'none';
-        debugEl.innerText = 'AR scene loaded. Waiting for targets...';
-      });
+      // Video planes
+      const videoPlane1 = document.getElementById('video-plane-1');
+      const videoPlane2 = document.getElementById('video-plane-2');
       
-      // Handle errors
-      sceneEl.addEventListener('arError', function(event) {
-        debugEl.innerText = 'AR Error: ' + event.detail.error;
-        loadingEl.innerHTML = 'AR Error: ' + event.detail.error + '<br>Please reload the page or try a different browser.';
-      });
+      // Flag to track if videos are enabled
+      let videosEnabled = false;
       
-      // Play appropriate video when target is found
-      sceneEl.addEventListener('targetFound', function(event) {
-        const targetIndex = event.detail.targetIndex;
-        debugEl.innerText = `Target ${targetIndex} found`;
-        instructionsEl.style.display = 'none';
-        
-        // Play the appropriate video
-        if (targetIndex === 0) {
-          recipe1VideoEl.play().catch(error => {
-            debugEl.innerText = `Video 1 play error: ${error.message}`;
-          });
-        } else if (targetIndex === 1) {
-          recipe2VideoEl.play().catch(error => {
-            debugEl.innerText = `Video 2 play error: ${error.message}`;
-          });
-        }
-      });
-      
-      // Pause video when target is lost
-      sceneEl.addEventListener('targetLost', function(event) {
-        const targetIndex = event.detail.targetIndex;
-        debugEl.innerText = `Target ${targetIndex} lost`;
-        instructionsEl.style.display = 'block';
-        
-        // Pause the appropriate video
-        if (targetIndex === 0) {
-          recipe1VideoEl.pause();
-        } else if (targetIndex === 1) {
-          recipe2VideoEl.pause();
-        }
-      });
-      
-      // For transparent video with chroma key (green screen)
-      // Uncomment to use custom shader for transparency
-      
+      // Register the chromakey shader
       AFRAME.registerShader('chromakey', {
         schema: {
           src: {type: 'map'},
@@ -295,15 +279,116 @@
         }
       });
       
+      // Hide loading screen when scene is loaded
+      sceneEl.addEventListener('loaded', function() {
+        loadingEl.style.display = 'none';
+        debugEl.innerText = 'AR scene loaded. Waiting for targets...';
+      });
       
-      // Force user interaction to enable autoplay
-      document.addEventListener('click', function() {
-        // Just an extra handler to enable autoplay on iOS
+      // Handle errors
+      sceneEl.addEventListener('arError', function(event) {
+        debugEl.innerText = 'AR Error: ' + event.detail.error;
+        loadingEl.innerHTML = 'AR Error: ' + event.detail.error + '<br>Please reload the page or try a different browser.';
+      });
+      
+      // Enable videos button handler
+      playButtonEl.addEventListener('click', function() {
+        videosEnabled = true;
+        playButtonEl.style.display = 'none';
+        
+        // iOS requires user interaction to play videos
+        recipe1VideoEl.muted = true;
+        recipe2VideoEl.muted = true;
+        
+        // Load the videos
+        recipe1VideoEl.load();
+        recipe2VideoEl.load();
+        
+        // Try to "wake up" the video elements
         recipe1VideoEl.play().catch(() => {});
-        recipe2VideoEl.play().catch(() => {});
-        // Immediately pause them
         recipe1VideoEl.pause();
+        recipe2VideoEl.play().catch(() => {});
         recipe2VideoEl.pause();
+        
+        debugEl.innerText = 'Videos enabled. Scan a target.';
+      });
+      
+      // Play appropriate video when target is found
+      sceneEl.addEventListener('targetFound', function(event) {
+        const targetIndex = event.detail.targetIndex;
+        debugEl.innerText = `Target ${targetIndex} found`;
+        instructionsEl.style.display = 'none';
+        
+        if (!videosEnabled) {
+          debugEl.innerText = 'Please tap the "Enable Videos" button first';
+          return;
+        }
+        
+        // Play the appropriate video
+        const videoElement = targetIndex === 0 ? recipe1VideoEl : recipe2VideoEl;
+        
+        // Make sure video is ready to play
+        if (videoElement.readyState >= 2) {
+          playVideo(videoElement, targetIndex);
+        } else {
+          debugEl.innerText = `Loading video ${targetIndex}...`;
+          videoElement.addEventListener('canplaythrough', function onCanPlay() {
+            videoElement.removeEventListener('canplaythrough', onCanPlay);
+            playVideo(videoElement, targetIndex);
+          });
+          videoElement.load();
+        }
+      });
+      
+      // Pause video when target is lost
+      sceneEl.addEventListener('targetLost', function(event) {
+        const targetIndex = event.detail.targetIndex;
+        debugEl.innerText = `Target ${targetIndex} lost`;
+        instructionsEl.style.display = 'block';
+        
+        // Pause the appropriate video
+        if (targetIndex === 0) {
+          recipe1VideoEl.pause();
+        } else if (targetIndex === 1) {
+          recipe2VideoEl.pause();
+        }
+      });
+      
+      // Helper function to play video with error handling
+      function playVideo(videoElement, targetIndex) {
+        // Make sure video is muted (iOS requirement)
+        videoElement.muted = true;
+        
+        const playPromise = videoElement.play();
+        
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            debugEl.innerText = `Video ${targetIndex} playing`;
+          }).catch(error => {
+            debugEl.innerText = `Video ${targetIndex} play error: ${error.message}`;
+            
+            // Try one more time with a slight delay
+            setTimeout(() => {
+              videoElement.play().catch(e => {
+                debugEl.innerText = `Still can't play: ${e.message}`;
+              });
+            }, 500);
+          });
+        }
+      }
+      
+      // For iOS compatibility - must handle document visibility changes
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          debugEl.innerText = 'Page visible again';
+          
+          // iOS Safari sometimes needs a refresh of the video elements
+          if (videosEnabled) {
+            // Reset video elements when page becomes visible again
+            recipe1VideoEl.load();
+            recipe2VideoEl.load();
+          }
+        }
       });
     });
   </script>
