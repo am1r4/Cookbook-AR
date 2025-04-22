@@ -7,8 +7,6 @@
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image.prod.js"></script>
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
-  <!-- GLTF loader component -->
-  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -20,296 +18,292 @@
       height: 100%;
       overflow: hidden;
     }
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    #debug {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 5px;
+      font-family: monospace;
+      z-index: 100;
+    }
+    .instructions {
+      position: fixed;
+      top: 10px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: white;
+      background-color: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      font-family: Arial, sans-serif;
+      z-index: 5;
+    }
   </style>
 </head>
 <body>
+  <!-- Loading indicator -->
+  <div id="loading">Loading AR Experience...</div>
+  
+  <!-- Debug output -->
+  <div id="debug">Initializing...</div>
+  
+  <!-- Instructions -->
+  <div class="instructions">Point camera at recipe image in cookbook</div>
+  
+  <!-- AR container -->
   <div class="example-container">
     <a-scene
-      mindar-image="imageTargetSrc: ./targets.mind; filterMinCF:0.0001; filterBeta: 0.001; missTolerance: 5;"
+      mindar-image="imageTargetSrc: ./targets.mind; 
+                  filterMinCF: 0.0001; 
+                  filterBeta: 0.01; 
+                  missTolerance: 8;
+                  warmupTolerance: 5;"
       embedded
       color-space="sRGB"
-      renderer="colorManagement: true, physicallyCorrectLights: true"
+      renderer="colorManagement: true; antialias: true; precision: medium;"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false">
       
-      <!-- Camera with permissions -->
+      <!-- Create a video asset for all targets -->
+      <a-assets>
+        <video 
+          id="recipe1-video" 
+          muted 
+          playsinline 
+          webkit-playsinline 
+          crossorigin="anonymous"
+          loop>
+          <source src="./videos/recipe1.webm" type="video/webm">
+          <source src="./videos/recipe1.mp4" type="video/mp4">
+        </video>
+        
+        <video 
+          id="recipe2-video" 
+          muted 
+          playsinline 
+          webkit-playsinline 
+          crossorigin="anonymous"
+          loop>
+          <source src="./videos/recipe2.webm" type="video/webm">
+          <source src="./videos/recipe2.mp4" type="video/mp4">
+        </video>
+      </a-assets>
+      
+      <!-- Camera element -->
       <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
       
-      <!-- First dish target 
-      <a-entity mindar-image-target="targetIndex: 1">
-        -->
-        <!-- 3D model with animation 
-        <a-entity
+      <!-- Target #0 -->
+      <a-entity mindar-image-target="targetIndex: 0">
+        <!-- Video plane for recipe 1 -->
+        <a-plane
           position="0 0 0"
-          rotation="0 0 0"
-          scale="0.5 0.5 0.5"
-          gltf-model="./models/dish1_animation.glb"
-          animation-mixer="clip: *; loop: repeat; clampWhenFinished: true;">
-        </a-entity>
+          height="0.8"
+          width="1.2"
+          rotation="0 0 0">
+          <a-video
+            src="#recipe1-video"
+            width="1.2"
+            height="0.8"
+            position="0 0 0.01">
+          </a-video>
+        </a-plane>
         
-       
+        <!-- Recipe info -->
         <a-plane
           position="0 -0.5 0"
           rotation="-90 0 0"
           width="1"
-          height="0.5"
+          height="0.3"
           color="#FFF"
           material="opacity: 0.8">
           <a-text
-            value="Recipe Name: Pasta Primavera\nCooking Time: 30 mins"
+            value="Recipe: Pasta Primavera\nCooking Time: 30 mins"
             position="0 0 0.01"
             rotation="0 0 0"
-            width="1.8"
+            width="1"
             align="center"
             color="#000">
           </a-text>
         </a-plane>
       </a-entity>
-      Optional recipe information -->
-     
+      
+      <!-- Target #1 -->
       <a-entity mindar-image-target="targetIndex: 1">
-        <!-- Video plane -->
+        <!-- Video plane for recipe 2 -->
         <a-plane
           position="0 0 0"
-          height="1"
-          width="1.5"
-          rotation="0 0 0"
-          transparent="true"
-          alpha-test="0.5">
+          height="0.8"
+          width="1.2"
+          rotation="0 0 0">
           <a-video
-            width="1.5"
-            height="1"
-            position="0 0 0.01"
-            autoplay="true"
-            loop="true">
-            <video id="recipe1" preload="auto" crossorigin="anonymous" playsinline>
-              <source src="./videos/recipe1.webm" type="video/webm">
-              <source src="./videos/recipe1.mp4" type="video/mp4">
-            </video>
+            src="#recipe2-video"
+            width="1.2"
+            height="0.8"
+            position="0 0 0.01">
           </a-video>
         </a-plane>
-      </a-entity>
-      <script>
-        AFRAME.registerShader('chromakey', {
-          schema: {
-            src: {type: 'map'},
-            color: {type: 'color', default: '#00FF00'},
-            threshold: {type: 'number', default: 0.5}
-          },
-          
-          init: function (data) {
-            this.uniforms = {
-              src: {type: 't', value: null},
-              color: {type: 'c', value: new THREE.Color(data.color)},
-              threshold: {type: 'f', value: data.threshold}
-            };
-            
-            this.material = new THREE.ShaderMaterial({
-              uniforms: this.uniforms,
-              vertexShader: `
-                varying vec2 vUv;
-                void main(void) {
-                  vUv = uv;
-                  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                }
-              `,
-              fragmentShader: `
-                uniform sampler2D src;
-                uniform vec3 color;
-                uniform float threshold;
-                varying vec2 vUv;
-                
-                void main(void) {
-                  vec4 texColor = texture2D(src, vUv);
-                  float distance = length(texColor.rgb - color);
-                  
-                  if (distance < threshold) {
-                    gl_FragColor = vec4(texColor.rgb, 0.0);
-                  } else {
-                    gl_FragColor = texColor;
-                  }
-                }
-              `,
-              transparent: true
-            });
-          },
-          
-          update: function (data) {
-            this.uniforms.color.value.set(data.color);
-            this.uniforms.threshold.value = data.threshold;
-            
-            if (data.src && data.src.value) {
-              this.uniforms.src.value = data.src.value;
-            }
-          }
-        });
-      </script>
-      
-      <a-entity mindar-image-target="targetIndex: 1">
+        
+        <!-- Recipe info -->
         <a-plane
-          position="0 0 0"
-          height="1"
-          width="1.5"
-          rotation="0 0 0"
-          material="shader: chromakey; src: #recipe1; color: #00FF00; threshold: 0.5">
-        </a-plane>
-      </a-entity>
-
-      <a-entity mindar-image-target="targetIndex: 10">
-        <!-- Video plane -->
-        <a-plane
-          position="0 0 0"
-          height="1"
-          width="1.5"
-          rotation="0 0 0"
-          transparent="true"
-          alpha-test="0.5">
-          <a-video
-            width="1.5"
-            height="1"
+          position="0 -0.5 0"
+          rotation="-90 0 0"
+          width="1"
+          height="0.3"
+          color="#FFF"
+          material="opacity: 0.8">
+          <a-text
+            value="Recipe: Chocolate Cake\nCooking Time: 45 mins"
             position="0 0 0.01"
-            autoplay="true"
-            loop="true">
-            <video id="recipe1" preload="auto" crossorigin="anonymous" playsinline>
-              <source src="./videos/recipe1.webm" type="video/webm">
-              <source src="./videos/recipe1.mp4" type="video/mp4">
-            </video>
-          </a-video>
+            rotation="0 0 0"
+            width="1"
+            align="center"
+            color="#000">
+          </a-text>
         </a-plane>
       </a-entity>
-      <script>
-        AFRAME.registerShader('chromakey', {
-          schema: {
-            src: {type: 'map'},
-            color: {type: 'color', default: '#00FF00'},
-            threshold: {type: 'number', default: 0.5}
-          },
-          
-          init: function (data) {
-            this.uniforms = {
-              src: {type: 't', value: null},
-              color: {type: 'c', value: new THREE.Color(data.color)},
-              threshold: {type: 'f', value: data.threshold}
-            };
-            
-            this.material = new THREE.ShaderMaterial({
-              uniforms: this.uniforms,
-              vertexShader: `
-                varying vec2 vUv;
-                void main(void) {
-                  vUv = uv;
-                  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                }
-              `,
-              fragmentShader: `
-                uniform sampler2D src;
-                uniform vec3 color;
-                uniform float threshold;
-                varying vec2 vUv;
-                
-                void main(void) {
-                  vec4 texColor = texture2D(src, vUv);
-                  float distance = length(texColor.rgb - color);
-                  
-                  if (distance < threshold) {
-                    gl_FragColor = vec4(texColor.rgb, 0.0);
-                  } else {
-                    gl_FragColor = texColor;
-                  }
-                }
-              `,
-              transparent: true
-            });
-          },
-          
-          update: function (data) {
-            this.uniforms.color.value.set(data.color);
-            this.uniforms.threshold.value = data.threshold;
-            
-            if (data.src && data.src.value) {
-              this.uniforms.src.value = data.src.value;
-            }
-          }
-        });
-      </script>
       
-      <a-entity mindar-image-target="targetIndex: 10">
-        <a-plane
-          position="0 0 0"
-          height="1"
-          width="1.5"
-          rotation="0 0 0"
-          material="shader: chromakey; src: #recipe1; color: #00FF00; threshold: 0.5">
-        </a-plane>
-      </a-entity>
-      <!--
-       Second dish target - add more for each recipe 
-      <a-entity mindar-image-target="targetIndex: 1">
-        Another 3D model with different animation 
-        <a-entity
-          position="0 0 0"
-          rotation="0 0 0"
-          scale="0.5 0.5 0.5"
-          gltf-model="./models/dish10_animation.glb"
-          animation-mixer="clip: *; loop: repeat; clampWhenFinished: true;">
-        </a-entity>
-      </a-entity>
-      
-      <!-- Add more targets as needed 
-      
-      <!-- Second dish target - add more for each recipe 
-      <a-entity mindar-image-target="targetIndex: 2">
-        <!-- Another 3D model with different animation 
-        <a-entity
-          position="0 0 0"
-          rotation="0 0 0"
-          scale="0.5 0.5 0.5"
-          gltf-model="./models/dish10_animation.glb"
-          animation-mixer="clip: *; loop: repeat; clampWhenFinished: true;">
-        </a-entity>
-      </a-entity>
-      
-  Second dish target - add more for each recipe 
-      <a-entity mindar-image-target="targetIndex: 3">
-   Another 3D model with different animation 
-        <a-entity
-          position="0 0 0"
-          rotation="0 0 0"
-          scale="0.5 0.5 0.5"
-          gltf-model="./models/dish10_animation.glb"
-          animation-mixer="clip: *; loop: repeat; clampWhenFinished: true;">
-        </a-entity>
-      </a-entity>
-      
-     Second dish target - add more for each recipe 
-      <a-entity mindar-image-target="targetIndex: 10">
-        Another 3D model with different animation 
-        <a-entity
-          position="0 0 0"
-          rotation="0 0 0"
-          scale="0.5 0.5 0.5"
-          gltf-model="./models/dish10_animation.glb"
-          animation-mixer="clip: *; loop: repeat; clampWhenFinished: true;">
-        </a-entity>
-      </a-entity>
+      <!-- Add more targets as needed -->
       
     </a-scene>
   </div>
--->
+  
   <script>
-    // Optional JavaScript for additional interactivity
     document.addEventListener("DOMContentLoaded", function() {
       const sceneEl = document.querySelector('a-scene');
+      const loadingEl = document.getElementById('loading');
+      const debugEl = document.getElementById('debug');
+      const instructionsEl = document.querySelector('.instructions');
       
-      // Event listener when target is found
-      sceneEl.addEventListener("targetFound", event => {
-        console.log("Target found", event.detail.targetIndex);
-        // You could trigger specific behaviors when a dish is recognized
+      // Video elements
+      const recipe1VideoEl = document.getElementById('recipe1-video');
+      const recipe2VideoEl = document.getElementById('recipe2-video');
+      
+      // Hide loading screen when scene is loaded
+      sceneEl.addEventListener('loaded', function() {
+        loadingEl.style.display = 'none';
+        debugEl.innerText = 'AR scene loaded. Waiting for targets...';
       });
       
-      // Event listener when target is lost
-      sceneEl.addEventListener("targetLost", event => {
-        console.log("Target lost", event.detail.targetIndex);
+      // Handle errors
+      sceneEl.addEventListener('arError', function(event) {
+        debugEl.innerText = 'AR Error: ' + event.detail.error;
+        loadingEl.innerHTML = 'AR Error: ' + event.detail.error + '<br>Please reload the page or try a different browser.';
+      });
+      
+      // Play appropriate video when target is found
+      sceneEl.addEventListener('targetFound', function(event) {
+        const targetIndex = event.detail.targetIndex;
+        debugEl.innerText = `Target ${targetIndex} found`;
+        instructionsEl.style.display = 'none';
+        
+        // Play the appropriate video
+        if (targetIndex === 0) {
+          recipe1VideoEl.play().catch(error => {
+            debugEl.innerText = `Video 1 play error: ${error.message}`;
+          });
+        } else if (targetIndex === 1) {
+          recipe2VideoEl.play().catch(error => {
+            debugEl.innerText = `Video 2 play error: ${error.message}`;
+          });
+        }
+      });
+      
+      // Pause video when target is lost
+      sceneEl.addEventListener('targetLost', function(event) {
+        const targetIndex = event.detail.targetIndex;
+        debugEl.innerText = `Target ${targetIndex} lost`;
+        instructionsEl.style.display = 'block';
+        
+        // Pause the appropriate video
+        if (targetIndex === 0) {
+          recipe1VideoEl.pause();
+        } else if (targetIndex === 1) {
+          recipe2VideoEl.pause();
+        }
+      });
+      
+      // For transparent video with chroma key (green screen)
+      // Uncomment to use custom shader for transparency
+      
+      AFRAME.registerShader('chromakey', {
+        schema: {
+          src: {type: 'map'},
+          color: {type: 'color', default: '#00FF00'},
+          threshold: {type: 'number', default: 0.5}
+        },
+        
+        init: function (data) {
+          this.uniforms = {
+            src: {type: 't', value: null},
+            color: {type: 'c', value: new THREE.Color(data.color)},
+            threshold: {type: 'f', value: data.threshold}
+          };
+          
+          this.material = new THREE.ShaderMaterial({
+            uniforms: this.uniforms,
+            vertexShader: `
+              varying vec2 vUv;
+              void main(void) {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+              }
+            `,
+            fragmentShader: `
+              uniform sampler2D src;
+              uniform vec3 color;
+              uniform float threshold;
+              varying vec2 vUv;
+              
+              void main(void) {
+                vec4 texColor = texture2D(src, vUv);
+                float distance = length(texColor.rgb - color);
+                
+                if (distance < threshold) {
+                  gl_FragColor = vec4(texColor.rgb, 0.0);
+                } else {
+                  gl_FragColor = texColor;
+                }
+              }
+            `,
+            transparent: true
+          });
+        },
+        
+        update: function (data) {
+          this.uniforms.color.value.set(data.color);
+          this.uniforms.threshold.value = data.threshold;
+          
+          if (data.src && data.src.value) {
+            this.uniforms.src.value = data.src.value;
+          }
+        }
+      });
+      
+      
+      // Force user interaction to enable autoplay
+      document.addEventListener('click', function() {
+        // Just an extra handler to enable autoplay on iOS
+        recipe1VideoEl.play().catch(() => {});
+        recipe2VideoEl.play().catch(() => {});
+        // Immediately pause them
+        recipe1VideoEl.pause();
+        recipe2VideoEl.pause();
       });
     });
   </script>
